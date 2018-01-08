@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>
+      Welcome to the treasure hunt!
+    </title>
+  </head>
+  <body>
+
+    <h2>
+      Provide your geolocation to see what fun awaits you right here!
+    </h2>
+
+    <button onclick="getLocation()">Try It</button>
+
+    <p id="showTreasure"></p>
+
+    <script type="text/javascript">
+
+      var x = document.getElementById("showTreasure");
+      function getLocation() {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(sendPositionToServer);
+        }
+        else {
+          console.log('Geolocation not supported.')
+          x.innerHTML = "Geolocation is not supported by this browser.";
+        }
+      }
+
+      function sendPositionToServer(position) {
+        var latitude = position.coords.latitude;
+        var longitude = position.coords.longitude;
+        // Make a request to server with the current latitude and longitude
+        var positionReqURL = `/?latitude=${latitude}&longitude=${longitude}`;
+        var positionReq = new XMLHttpRequest();
+        positionReq.onreadystatechange = function() {
+          if (positionReq.readyState === 4) {
+            if (positionReq.status === 200) {
+              console.log(positionReq.responseText);
+              x.innerHTML = positionReq.responseText;
+            }
+            else {
+              console.log('Fail to send geolocation to server', positionReq.status);
+            }
+          }
+        };
+        positionReq.open('POST', positionReqURL);
+        positionReq.send();
+      }
+
+    </script>
+  </body>
+</html>

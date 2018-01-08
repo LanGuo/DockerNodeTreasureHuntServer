@@ -1,0 +1,11 @@
+{
+  "name": "docker_node_treasure_hunt_server",
+  "version": "1.0.0",
+  "description": "Node.js server on Docker",
+  "author": "Lan Guo <lan.guo14@gmail.com>",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {}
+}
