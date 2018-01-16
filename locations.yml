@@ -1,0 +1,11 @@
+locations:
+    - address: 924 Willamette St, Eugene, OR 97401, USA
+      name: The Barn Light
+      latitude: 44.049674
+      longitude: -123.092863
+      url: http://thebarnlightbar.com/
+    - address: 20 E Broadway, Eugene, OR 97401, USA
+      name: Voodoo Donut
+      latitude: 44.0496688
+      longitude: -123.0923716
+      url: https://www.voodoodoughnut.com/locations/voodoo-doughnut-eugene/
