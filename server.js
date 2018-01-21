@@ -4,8 +4,6 @@ var url = require('url');
 var yaml = require('js-yaml')
 var port = 8080
 
-
-
 function loadYAMLConfig() {
   var config = null;
   try {
@@ -17,34 +15,57 @@ function loadYAMLConfig() {
   return config;
 }
 
+function degreesToRadians(degrees) {
+  return degrees * Math.PI / 180;
+}
 
-function inGeofence(userLat, userLon, targetLat, targetLon) {
-  var latDelta = userLat - targetLat;
-  var lonDelta = userLon - targetLon;
-  var distanceSquared = latDelta * latDelta + lonDelta * lonDelta;
-  var thresholdDistanceSquared = 0.000000000123; // distance between TBL and Voodoo Doughnuts
-  return distanceSquared <= thresholdDistanceSquared;
+function haversineDistanceKm(lat1, lon1, lat2, lon2) {
+  var earthRadiusKm = 6371;
+
+  var dLat = degreesToRadians(lat2-lat1);
+  var dLon = degreesToRadians(lon2-lon1);
+
+  lat1 = degreesToRadians(lat1);
+  lat2 = degreesToRadians(lat2);
+
+  var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+          Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1) * Math.cos(lat2);
+  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return earthRadiusKm * c;
+}
+
+function inGeofence(userLat, userLon, targetLat, targetLon, thresholdDistance) {
+  distance = haversineDistanceKm(userLat, userLon, targetLat, targetLon);
+  console.log(`Distance is ${distance}km`);
+  return distance <= thresholdDistance;
 }
 
 
-function huntForTreasure(config, userLat, userLon) {
-  var message = 'Your location has no hidden treasure';
+function huntForTreasure(config, userLat, userLon, thresholdDistance) {
+  var userLocation = `latitude: ${userLat}, longitude:${userLon}`;
+  var message = `You are at ${userLocation}. Your location has no hidden treasure.`;
   var treasure = null;
   var locations = config.locations;
   for (var i=0; i<locations.length; i++) {
-    let {address, name, targetLat, targetLon, treasureThisLoc} = locations[i];
-    var nearTreasure = inGeofence(userLat, userLon, targetLat, targetLon);
+    let {address, name, latitude, longitude, url} = locations[i];
+    //console.log(`address:${address}, name:${name}, targetLat:${latitude}, treasureThisLoc:${url}`)
+    var nearTreasure = inGeofence(userLat, userLon, latitude, longitude, thresholdDistance);
     if (nearTreasure) {
-      message = `You are at ${name}`;
-      treasure = treasureThisLoc;
+      treasure = url;
+      message = `You are at ${name}. Find the hidden treasure here at ${treasure}!`;
     }
   }
-  return {message, treasure};
+  return {userLocation, message, treasure};
 }
 
 
 // Load config file when start up server
 var config = loadYAMLConfig();
+var thresholdDistance = haversineDistanceKm(config.locations[0].latitude,
+  config.locations[0].longitude,
+  config.locations[1].latitude,
+  config.locations[1].longitude); // haversine distance between TBL and Voodoo Doughnuts in Km
+console.log(`Using distance between TBL and voodoo in km: ${thresholdDistance} as threshold distance.`)
 
 // create a server object:
 http.createServer(function (req, res) {
@@ -66,9 +87,9 @@ http.createServer(function (req, res) {
     //var coor = 'latitude: ' + q.latitude + '; longitude: ' + q.longitude;
     var latitude = q.latitude;
     var longitude = q.longitude;
-    var {message, treasure} = huntForTreasure(config, latitude, longitude);
+    var {userLocation, message, treasure} = huntForTreasure(config, latitude, longitude, thresholdDistance);
     res.writeHead(200, {'Content-Type': 'text/html'});
-    res.write(`${message}. The hidden treasure here is ${treasure}.`);
+    res.write(`${message}`);
     res.end()
   }
   else {
