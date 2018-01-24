@@ -5,51 +5,90 @@
     <title>
       Welcome to the treasure hunt!
     </title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
   </head>
+
   <body>
+    <div
+      class="container">
+      <div
+        class="row">
 
-    <h2>
-      Provide your geolocation to see what fun awaits you right here!
-    </h2>
+        <div
+          class="col-12">
+          <h2>
+            Provide your geolocation to see what fun awaits you right here!
+          </h2>
 
-    <button onclick="getLocation()">Try It</button>
+          <h6>
+            In the future, this endpoint will be primarily a JSON API and this
+            helpful index test page will not exist.
+          </h6>
+        </div>
+      </div>
 
-    <p id="showTreasure"></p>
+      <div
+        class="row">
+        <div
+          class="col-3">
+          <button
+            class="btn btn-primary btn-sm btn-block"
+            onclick="huntAt(44.0496688, -123.0923716) ">
+            Hunt at Voodoo
+          </button>
+        </div>
+        <div
+          class="col-3">
+          <button
+            class="btn btn-primary btn-sm btn-block"
+            onclick="huntAt(44.049674, -123.092863) ">
+            Hunt at TBL
+          </button>
+        </div>
+        <div
+          class="col-3">
+          <button
+            class="btn btn-primary btn-sm btn-block"
+            onclick="huntAt(44.038976, -123.0708621) ">
+            Hunt at Agate
+          </button>
+        </div>
+        <div
+          class="col-3">
+          <button
+            class="btn btn-primary btn-sm btn-block"
+            onclick="huntAt(44.034889, -123.095353) ">
+            Hunt at Cave
+          </button>
+        </div>
+      </div>
 
-    <script type="text/javascript">
+      <div
+        class="row">
+        <div
+          class="col-12">
+          <button
+            class="btn btn-primary btn-sm btn-block"
+            onclick="getLocationAndHunt()">
+            Hunt for Treasure Here
+          </button>
+        </div>
+      </div>
 
-      var x = document.getElementById("showTreasure");
-      function getLocation() {
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(sendPositionToServer);
-        }
-        else {
-          console.log('Geolocation not supported.')
-          x.innerHTML = "Geolocation is not supported by this browser.";
-        }
-      }
+      <hr>
 
-      function sendPositionToServer(position) {
-        var latitude = position.coords.latitude;
-        var longitude = position.coords.longitude;
-        // Make a request to server with the current latitude and longitude
-        var positionReqURL = `/?latitude=${latitude}&longitude=${longitude}`;
-        var positionReq = new XMLHttpRequest();
-        positionReq.onreadystatechange = function() {
-          if (positionReq.readyState === 4) {
-            if (positionReq.status === 200) {
-              console.log(positionReq.responseText);
-              x.innerHTML = positionReq.responseText;
-            }
-            else {
-              console.log('Fail to send geolocation to server', positionReq.status);
-            }
-          }
-        };
-        positionReq.open('POST', positionReqURL);
-        positionReq.send();
-      }
+      <div
+        class="row">
+        <div
+          class="col-12"
+          id="showTreasure">
+        </div>
+      </div>
+    </div>
 
+    <script src="client.js">
     </script>
+
   </body>
 </html>

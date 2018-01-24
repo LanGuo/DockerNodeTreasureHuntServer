@@ -1,3 +1,8 @@
+#
+# server.js currently uses the first two entries below as the threshold distance
+# for close enough (TBL and Voodoo). This is a brittle solution and there should
+# be a more explicit way to specify this distance.
+#
 locations:
     - address: 924 Willamette St, Eugene, OR 97401, USA
       name: The Barn Light
@@ -9,3 +14,13 @@ locations:
       latitude: 44.0496688
       longitude: -123.0923716
       url: https://www.voodoodoughnut.com/locations/voodoo-doughnut-eugene/
+    - address: 1461 E 19th Ave, Eugene, OR 97403, USA
+      name: Agate Alley Bistro
+      latitude: 44.038976
+      longitude: -123.0708621
+      url: http://www.agatealley.com
+    - address: Charnelton St and 23rd Ave, Eugene, OR 97405, USA
+      name: Colossal Cave
+      latitude: 44.034889
+      longitude: -123.095353
+      url: https://smartdown.site/gist/#DoctorBud/94d8fc0aea98aa7312318e09430c837b/Home

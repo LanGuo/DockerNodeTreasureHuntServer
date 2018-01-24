@@ -34,34 +34,36 @@ function haversineDistanceKm(lat1, lon1, lat2, lon2) {
   return earthRadiusKm * c;
 }
 
-function inGeofence(userLat, userLon, targetLat, targetLon, thresholdDistance) {
+function inGeofence(name, userLat, userLon, targetLat, targetLon, thresholdDistance) {
   distance = haversineDistanceKm(userLat, userLon, targetLat, targetLon);
-  console.log(`Distance is ${distance}km`);
-  return distance <= thresholdDistance;
+  console.log(`Distance to ${name} is ${distance}km`);
+  return thresholdDistance - distance;
 }
 
 
 function huntForTreasure(config, userLat, userLon, thresholdDistance) {
   var userLocation = `latitude: ${userLat}, longitude:${userLon}`;
-  var message = `You are at ${userLocation}. Your location has no hidden treasure.`;
-  var treasure = null;
+  var treasureLocation = null;
+  var treasureCloseness = 0;
   var locations = config.locations;
-  for (var i=0; i<locations.length; i++) {
-    let {address, name, latitude, longitude, url} = locations[i];
+  for (var i = 0; i < locations.length; i++) {
+    let location = locations[i];
+    let {address, name, latitude, longitude, url} = location;
     //console.log(`address:${address}, name:${name}, targetLat:${latitude}, treasureThisLoc:${url}`)
-    var nearTreasure = inGeofence(userLat, userLon, latitude, longitude, thresholdDistance);
-    if (nearTreasure) {
-      treasure = url;
-      message = `You are at ${name}. Find the hidden treasure here at ${treasure}!`;
+    var closeness = inGeofence(name, userLat, userLon, latitude, longitude, thresholdDistance);
+    if (closeness > treasureCloseness) {
+      treasureLocation = location;
+      treasureCloseness = closeness;
     }
   }
-  return {userLocation, message, treasure};
+  return treasureLocation;
 }
 
 
 // Load config file when start up server
 var config = loadYAMLConfig();
-var thresholdDistance = haversineDistanceKm(config.locations[0].latitude,
+var thresholdDistance = haversineDistanceKm(
+  config.locations[0].latitude,
   config.locations[0].longitude,
   config.locations[1].latitude,
   config.locations[1].longitude); // haversine distance between TBL and Voodoo Doughnuts in Km
@@ -69,7 +71,23 @@ console.log(`Using distance between TBL and voodoo in km: ${thresholdDistance} a
 
 // create a server object:
 http.createServer(function (req, res) {
-  if (req.url === '/index') {
+  const reqUrl = req.url;
+  var q = url.parse(reqUrl, true).query;
+  const hasParams = reqUrl.indexOf('?') === 1;
+  if (reqUrl === '/client.js') {
+    fs.readFile('client.js', function(err, data) {
+      if (err) {
+        res.writeHead(404);
+        res.write('File not found!');
+      }
+      else {
+        res.writeHead(200, {'Content-Type': 'application/javascript'});
+        res.write(data);
+      }
+      res.end();
+    });
+  }
+  else if (reqUrl === '/' && !hasParams) {
     fs.readFile('index.html', function(err, data) {
       if (err) {
         res.writeHead(404);
@@ -80,21 +98,26 @@ http.createServer(function (req, res) {
         res.write(data);
       }
       res.end();
-    })
+    });
   }
-  else if (req.url.indexOf('?') === 1) {
-    var q = url.parse(req.url, true).query;
+  else if (hasParams) {
     //var coor = 'latitude: ' + q.latitude + '; longitude: ' + q.longitude;
     var latitude = q.latitude;
     var longitude = q.longitude;
-    var {userLocation, message, treasure} = huntForTreasure(config, latitude, longitude, thresholdDistance);
-    res.writeHead(200, {'Content-Type': 'text/html'});
-    res.write(`${message}`);
+    var huntResponse = huntForTreasure(config, latitude, longitude, thresholdDistance);
+    console.log('huntResponse', huntResponse);
+    if (!huntResponse) {
+      huntResponse = {};
+    }
+
+    huntResponse.search_latitude = latitude;
+    huntResponse.search_longitude = longitude;
+    res.writeHead(200, {'Content-Type': 'application/json'});
+    res.write(JSON.stringify(huntResponse, null, 2));
     res.end()
   }
   else {
-    res.writeHead(200, {'Content-Type': 'text/html'});
-    res.write('Please visit /index.');
+    res.writeHead(302, {Location: "/"});
     res.end()
   }
 }).listen(port);
