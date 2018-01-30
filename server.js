@@ -90,11 +90,12 @@ haversineDistanceKm(
 //console.log(`Using ${thresholdDistance} kilometers as threshold distance.`);
 
 // options for https using self-signed certificate
+/*
 var options = {
   key: fs.readFileSync('./server.key'),
   cert: fs.readFileSync('./server.crt')
 };
-
+*/
 
 // create a server object:
 http.createServer(function (req, res) {
