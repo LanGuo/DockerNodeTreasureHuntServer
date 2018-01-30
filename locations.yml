@@ -8,19 +8,23 @@ locations:
       name: The Barn Light
       latitude: 44.049674
       longitude: -123.092863
+      thresholdKm: 0.02
       url: http://thebarnlightbar.com/
     - address: 20 E Broadway, Eugene, OR 97401, USA
       name: Voodoo Donut
       latitude: 44.0496688
       longitude: -123.0923716
+      thresholdKm: 0.01
       url: https://www.voodoodoughnut.com/locations/voodoo-doughnut-eugene/
     - address: 1461 E 19th Ave, Eugene, OR 97403, USA
       name: Agate Alley Bistro
       latitude: 44.038976
       longitude: -123.0708621
+      thresholdKm: 0.01
       url: http://www.agatealley.com
     - address: Charnelton St and 23rd Ave, Eugene, OR 97405, USA
       name: Colossal Cave
       latitude: 44.034889
       longitude: -123.095353
+      thresholdKm: 0.01
       url: https://smartdown.site/gist/#DoctorBud/94d8fc0aea98aa7312318e09430c837b/Home

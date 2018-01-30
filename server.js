@@ -1,4 +1,5 @@
 var http = require('http');
+var https = require('https');
 var fs = require('fs');
 var url = require('url');
 var yaml = require('js-yaml')
@@ -34,27 +35,43 @@ function haversineDistanceKm(lat1, lon1, lat2, lon2) {
   return earthRadiusKm * c;
 }
 
+/* Deprecated function
 function inGeofence(name, userLat, userLon, targetLat, targetLon, thresholdDistance) {
   distance = haversineDistanceKm(userLat, userLon, targetLat, targetLon);
   console.log(`Distance to ${name} is ${distance}km`);
   return thresholdDistance - distance;
 }
+*/
 
+function findClosestLocToUser(locationsList, userLat, userLon){
+  var smallestDistance = null;
+  var closestLocInd = 0;
+  for (var i = 0; i < locationsList.length; i++) {
+    let location = locationsList[i];
+    let {address, name, latitude, longitude, url} = location;
+    let distanceToThisLoc = haversineDistanceKm(userLat, userLon, latitude, longitude);
+    console.log(`Distance to ${name} is ${distanceToThisLoc}km`);
+    if (i === 0) {
+      smallestDistance = distanceToThisLoc;
+    }
+    else {
+      if (distanceToThisLoc < smallestDistance) {
+        smallestDistance = distanceToThisLoc;
+        closestLocInd = i;
+      }
+    }
+  }
+  return {closestLocInd, smallestDistance};
+}
 
-function huntForTreasure(config, userLat, userLon, thresholdDistance) {
+function huntForTreasure(config, userLat, userLon) {
   var userLocation = `latitude: ${userLat}, longitude:${userLon}`;
   var treasureLocation = null;
-  var treasureCloseness = 0;
   var locations = config.locations;
-  for (var i = 0; i < locations.length; i++) {
-    let location = locations[i];
-    let {address, name, latitude, longitude, url} = location;
-    //console.log(`address:${address}, name:${name}, targetLat:${latitude}, treasureThisLoc:${url}`)
-    var closeness = inGeofence(name, userLat, userLon, latitude, longitude, thresholdDistance);
-    if (closeness > treasureCloseness) {
-      treasureLocation = location;
-      treasureCloseness = closeness;
-    }
+  let {closestLocInd, smallestDistance} = findClosestLocToUser(locations, userLat, userLon);
+  var thresholdDistance = locations[closestLocInd].thresholdKm;
+  if (smallestDistance <= thresholdDistance) {
+    treasureLocation = locations[closestLocInd];
   }
   return treasureLocation;
 }
@@ -62,15 +79,24 @@ function huntForTreasure(config, userLat, userLon, thresholdDistance) {
 
 // Load config file when start up server
 var config = loadYAMLConfig();
-var thresholdDistance = haversineDistanceKm(
+//var thresholdDistance = 0.3;
+/*
+haversineDistanceKm(
   config.locations[0].latitude,
   config.locations[0].longitude,
   config.locations[1].latitude,
   config.locations[1].longitude); // haversine distance between TBL and Voodoo Doughnuts in Km
-console.log(`Using distance between TBL and voodoo in km: ${thresholdDistance} as threshold distance.`)
+*/
+//console.log(`Using ${thresholdDistance} kilometers as threshold distance.`);
+
+var options = {
+  key: fs.readFileSync('./server.key'),
+  cert: fs.readFileSync('./server.crt')
+};
+
 
 // create a server object:
-http.createServer(function (req, res) {
+https.createServer(options, function (req, res) {
   const reqUrl = req.url;
   var q = url.parse(reqUrl, true).query;
   const hasParams = reqUrl.indexOf('?') === 1;
@@ -101,23 +127,27 @@ http.createServer(function (req, res) {
     });
   }
   else if (hasParams) {
-    //var coor = 'latitude: ' + q.latitude + '; longitude: ' + q.longitude;
     var latitude = q.latitude;
     var longitude = q.longitude;
-    var huntResponse = huntForTreasure(config, latitude, longitude, thresholdDistance);
-    console.log('huntResponse', huntResponse);
+    //console.log(`latitude is ${latitude}, longitude is ${longitude}`);
+    var huntResponse = huntForTreasure(config, latitude, longitude);
+    //console.log('huntResponse', huntResponse);
+    var serverResponse = {};
     if (!huntResponse) {
-      huntResponse = {};
+      serverResponse.search_latitude = latitude;
+      serverResponse.search_longitude = longitude;
     }
-
-    huntResponse.search_latitude = latitude;
-    huntResponse.search_longitude = longitude;
+    else {
+      serverResponse = huntResponse;
+      serverResponse.search_latitude = latitude;
+      serverResponse.search_longitude = longitude;
+    }
     res.writeHead(200, {'Content-Type': 'application/json'});
-    res.write(JSON.stringify(huntResponse, null, 2));
-    res.end()
+    res.write(JSON.stringify(serverResponse, null, 2));
+    res.end();
   }
   else {
-    res.writeHead(302, {Location: "/"});
-    res.end()
+    res.writeHead(302, {'Location': "/"});
+    res.end();
   }
 }).listen(port);

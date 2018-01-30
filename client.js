@@ -1,4 +1,4 @@
-var x = document.getElementById("showTreasure");
+var treasureDiv = document.getElementById("showTreasure");
 
 
 function huntAt(lat, lon) {
@@ -12,17 +12,20 @@ function huntAt(lat, lon) {
 }
 
 function getLocationAndHunt() {
-  x.innerHTML =
+  treasureDiv.innerHTML =
 `
 <h6>Searching for Treasure…</h6>
 `;
   try {
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(sendPositionToServer);
+      console.log('Before getCurrentPosition');
+      navigator.geolocation.getCurrentPosition(pos => {
+        sendPositionToServer(pos);
+      });
     }
     else {
       console.log('Geolocation not supported.')
-      x.innerHTML =
+      treasureDiv.innerHTML =
 `<h1>
 Geolocation is not supported by this browser.
 </h1>
@@ -31,7 +34,7 @@ Geolocation is not supported by this browser.
   }
   catch (e) {
     console.log('Error getting geolocation', e);
-      x.innerHTML =
+      treasureDiv.innerHTML =
 `<h1>
 Error getting geolocation: ${e}.
 </h1>
@@ -40,6 +43,7 @@ Error getting geolocation: ${e}.
 }
 
 function sendPositionToServer(position) {
+  console.log('Sending position to server');
   var latitude = position.coords.latitude;
   var longitude = position.coords.longitude;
   // Make a request to server with the current latitude and longitude
@@ -51,13 +55,13 @@ function sendPositionToServer(position) {
         const responseText = positionReq.responseText;
         console.log('responseText', responseText);
         const response = JSON.parse(responseText);
-        x.innerHTML =
+        treasureDiv.innerHTML =
 `<pre class="pre-scrollable">
 ${positionReq.responseText}
 </pre>
 `;
         if (response.url) {
-          x.innerHTML +=
+          treasureDiv.innerHTML +=
 `<a target="_blank" href="${response.url}">${response.name}</a>
 `;
         }
