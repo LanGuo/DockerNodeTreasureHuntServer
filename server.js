@@ -91,14 +91,14 @@ haversineDistanceKm(
 
 // options for https using self-signed certificate
 
-var options = {
-  key: fs.readFileSync('./server.key'),
-  cert: fs.readFileSync('./server.crt')
-};
+//var options = {
+//  key: fs.readFileSync('./server.key'),
+//  cert: fs.readFileSync('./server.crt')
+//};
 
 
 // create a server object:
-https.createServer(options, function (req, res) {
+http.createServer(function (req, res) {
   const reqUrl = req.url;
   var q = url.parse(reqUrl, true).query;
   const hasParams = reqUrl.indexOf('?') === 1;
