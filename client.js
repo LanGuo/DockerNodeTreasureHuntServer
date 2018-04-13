@@ -47,7 +47,8 @@ function sendPositionToServer(position) {
   var latitude = position.coords.latitude;
   var longitude = position.coords.longitude;
   // Make a request to server with the current latitude and longitude
-  var positionReqURL = `/?latitude=${latitude}&longitude=${longitude}`;
+  //var positionReqURL = `/?latitude=${latitude}&longitude=${longitude}`;
+  var params = `latitude=${latitude}&longitude=${longitude}`;
   var positionReq = new XMLHttpRequest();
   positionReq.onreadystatechange = function() {
     if (positionReq.readyState === 4) {
@@ -71,6 +72,6 @@ ${positionReq.responseText}
       }
     }
   };
-  positionReq.open('POST', positionReqURL);
-  positionReq.send();
+  positionReq.open('POST', '/'); //positionReqURL);
+  positionReq.send(params);
 }
