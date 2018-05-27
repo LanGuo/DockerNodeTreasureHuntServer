@@ -4,7 +4,7 @@ const fs = require('fs');
 const url = require('url');
 const yaml = require('js-yaml')
 const qs = require('querystring');
-const host = '127.0.0.1';
+//const host = '0.0.0.0';
 const port = 8080
 
 function loadYAMLConfig() {
@@ -145,7 +145,7 @@ server = http.createServer( function(req, res) {
   });
 });
 
-server.listen(port, host);
+server.listen(port);
 
 
 //const thresholdDistance = 0.3;
